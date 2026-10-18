@@ -1,0 +1,47 @@
+name: publicar-imagem
+
+# Publicação inicial manual; o pipeline completo de entrega será acrescentado depois.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  imagem:
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Obter código
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Identificar imagem
+        id: imagem
+        shell: bash
+        run: |
+          repositorio="${GITHUB_REPOSITORY,,}"
+          echo "referencia=ghcr.io/${repositorio}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+      - name: Autenticar no GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Construir e publicar imagem
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.imagem.outputs.referencia }}
+          build-args: |
+            APP_VERSION=${{ github.sha }}
+      - name: Registrar referência da imagem
+        env:
+          IMAGEM: ${{ steps.imagem.outputs.referencia }}
+        run: echo "Imagem publicada: $IMAGEM" >> "$GITHUB_STEP_SUMMARY"
