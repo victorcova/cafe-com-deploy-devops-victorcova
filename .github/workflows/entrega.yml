@@ -1,0 +1,83 @@
+name: entrega
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: entrega-producao
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  imagem:
+    needs: ci
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      referencia: ${{ steps.imagem.outputs.referencia }}
+    steps:
+      - name: Obter codigo
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Identificar imagem
+        id: imagem
+        run: |
+          repositorio="${GITHUB_REPOSITORY,,}"
+          echo "referencia=ghcr.io/${repositorio}:${GITHUB_SHA}" >> "$GITHUB_OUTPUT"
+      - name: Autenticar no GHCR
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Construir e publicar imagem
+        uses: docker/build-push-action@10e90e3645eae34f1e60eeb005ba3a3d33f178e8 # v6
+        with:
+          context: .
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.imagem.outputs.referencia }}
+          build-args: |
+            APP_VERSION=${{ github.sha }}
+
+  staging:
+    needs: imagem
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      url: https://cafe-com-deploy-staging-hkwx.onrender.com
+    steps:
+      - name: Obter codigo
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Implantar e validar staging
+        env:
+          DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          IMAGEM: ${{ needs.imagem.outputs.referencia }}
+          VERSAO: ${{ github.sha }}
+          APLICACAO: https://cafe-com-deploy-staging-hkwx.onrender.com
+        run: python .github/scripts/implantar.py
+
+  production:
+    needs: [imagem, staging]
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://cafe-com-deploy-production.onrender.com
+    steps:
+      - name: Obter codigo
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Implantar e validar producao
+        env:
+          DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          IMAGEM: ${{ needs.imagem.outputs.referencia }}
+          VERSAO: ${{ github.sha }}
+          APLICACAO: https://cafe-com-deploy-production.onrender.com
+        run: python .github/scripts/implantar.py
