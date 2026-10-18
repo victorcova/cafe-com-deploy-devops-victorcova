@@ -1,0 +1,44 @@
+name: rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      versao:
+        description: SHA completo da imagem estavel e compativel com o banco
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: entrega-producao
+  cancel-in-progress: false
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://cafe-com-deploy-production.onrender.com
+    steps:
+      - name: Obter codigo
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Validar versao e identificar imagem
+        id: imagem
+        env:
+          VERSAO: ${{ inputs.versao }}
+        run: |
+          if [[ ! "$VERSAO" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "Informe um SHA completo de 40 caracteres hexadecimais minusculos." >&2
+            exit 1
+          fi
+          repositorio="${GITHUB_REPOSITORY,,}"
+          echo "referencia=ghcr.io/${repositorio}:${VERSAO}" >> "$GITHUB_OUTPUT"
+      - name: Implantar imagem anterior e verificar versao
+        env:
+          DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          IMAGEM: ${{ steps.imagem.outputs.referencia }}
+          VERSAO: ${{ inputs.versao }}
+          APLICACAO: https://cafe-com-deploy-production.onrender.com
+        run: python .github/scripts/implantar.py
