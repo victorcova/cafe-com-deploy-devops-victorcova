@@ -44,4 +44,5 @@ jobs:
       - name: Registrar referência da imagem
         env:
           IMAGEM: ${{ steps.imagem.outputs.referencia }}
-        run: echo "Imagem publicada: $IMAGEM" >> "$GITHUB_STEP_SUMMARY"
+        run: |
+          echo "Imagem publicada: $IMAGEM" >> "$GITHUB_STEP_SUMMARY"
