@@ -15,5 +15,16 @@ services:
       timeout: 5s
       retries: 10
 
+  api:
+    build: .
+    environment:
+      DATABASE_URL: postgresql+psycopg://cafe:cafe@db:5432/cafe
+      APP_VERSION: dev
+      DESCONTO_MAXIMO: "50"
+    ports:
+      - "127.0.0.1:8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
 volumes:
   dados_postgres:
