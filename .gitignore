@@ -1,0 +1,12 @@
+# Ambiente virtual e configurações locais
+.venv/
+.env
+.env.*
+!.env.example
+
+# Arquivos temporários do Python e testes
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+htmlcov/
