@@ -31,3 +31,8 @@ def test_rejeita_preco_negativo(monkeypatch):
     monkeypatch.setenv("DESCONTO_MAXIMO", "50")
     with pytest.raises(ValueError, match="Preço ou limite"):
         preco_com_desconto(-1, 10)
+
+
+def test_desconto_fracionario(monkeypatch):
+    monkeypatch.setenv("DESCONTO_MAXIMO", "50")
+    assert preco_com_desconto(20, 12.5) == 17.5

@@ -31,7 +31,7 @@ def preco_com_desconto(preco: float, pct: float) -> float:
     if not Decimal("0") <= desconto <= maximo:
         raise ValueError("Desconto fora do limite permitido")
 
-    resultado = valor * (Decimal("1") - desconto / Decimal("100"))
+    resultado = valor * (Decimal("1") - desconto / Decimal("10"))
     return float(resultado.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
 
 
