@@ -26,7 +26,7 @@ jobs:
       referencia: ${{ steps.imagem.outputs.referencia }}
     steps:
       - name: Obter codigo
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Identificar imagem
         id: imagem
         run: |
@@ -56,7 +56,7 @@ jobs:
       url: https://cafe-com-deploy-staging-hkwx.onrender.com
     steps:
       - name: Obter codigo
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Implantar e validar staging
         env:
           DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
@@ -73,7 +73,7 @@ jobs:
       url: https://cafe-com-deploy-production.onrender.com
     steps:
       - name: Obter codigo
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Implantar e validar producao
         env:
           DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
