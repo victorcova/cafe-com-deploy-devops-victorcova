@@ -1,5 +1,5 @@
 # A etapa de dependências é separada da imagem usada para executar a API.
-FROM python:3.12-slim AS base
+FROM python:3.13-slim AS base
 ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1
 WORKDIR /app
 
